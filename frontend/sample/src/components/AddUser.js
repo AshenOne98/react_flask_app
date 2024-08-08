@@ -10,6 +10,7 @@ class AddUser extends Component {
       _id: this.props.match.params.id,
       name: "",
       phone: "",
+      error: null,
     };
   }
 
@@ -27,21 +28,31 @@ class AddUser extends Component {
 
   saveOrUpdateUser = (e) => {
     e.preventDefault();
-    let user = {
-      name: this.state.name,
-      phone: this.state.phone,
-    };
-    console.log("user => " + JSON.stringify(user));
-    console.log(this.state._id);
+    const { name, phone } = this.state;
+
+    if (!name || !phone) {
+      this.setState({ error: "Name and phone are required." });
+      return;
+    }
+
+    const user = { name, phone };
 
     if (this.state._id === "add") {
-      UserService.createUser(user).then((res) => {
-        this.props.history.push("/users");
-      });
+      UserService.createUser(user)
+        .then(() => {
+          this.props.history.push("/users");
+        })
+        .catch(() => {
+          this.setState({ error: "Failed to add user." });
+        });
     } else {
-      UserService.updateUser(user, this.state._id).then((res) => {
-        this.props.history.push("/users");
-      });
+      UserService.updateUser(user, this.state._id)
+        .then(() => {
+          this.props.history.push("/users");
+        })
+        .catch(() => {
+          this.setState({ error: "Failed to update user." });
+        });
     }
   };
 
@@ -58,12 +69,16 @@ class AddUser extends Component {
       });
     }
   }
+
   render() {
+    const { name, phone, error } = this.state;
+
     return (
       <div>
-        <h2 className="text-center">Add Contact</h2>
+        <h2 className="text-center">{this.state._id === "add" ? "Add User" : "Edit User"}</h2>
         <div className="row justify-content-center align-items-center mt-3">
           <div className="col-sm-8">
+            {error && <div className="alert alert-danger">{error}</div>}
             <form>
               <div className="form-group">
                 <label style={{ float: "left" }}>Name:</label>
@@ -72,7 +87,7 @@ class AddUser extends Component {
                   className="form-control"
                   placeholder="Enter Name"
                   name="name"
-                  value={this.state.name}
+                  value={name}
                   onChange={this.changeNameHandler}
                 />
               </div>
@@ -83,7 +98,7 @@ class AddUser extends Component {
                   className="form-control"
                   placeholder="Enter Phone"
                   name="phone"
-                  value={this.state.phone}
+                  value={phone}
                   onChange={this.changePhoneHandler}
                 />
               </div>
@@ -94,11 +109,11 @@ class AddUser extends Component {
                   onClick={this.saveOrUpdateUser}
                   style={{ marginRight: "10px" }}
                 >
-                  Save
+                  {this.state._id === "add" ? "Save" : "Update"}
                 </button>
                 <button
                   className="btn btn-danger"
-                  onClick={this.cancel.bind(this)}
+                  onClick={this.cancel}
                 >
                   Cancel
                 </button>

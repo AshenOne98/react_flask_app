@@ -12,26 +12,46 @@ class ViewUser extends Component {
   }
 
   componentDidMount() {
-    UserService.getUserById(this.state.id).then((res) => {
-      this.setState({ user: res.data });
-    });
+    UserService.getUserById(this.state.id)
+      .then((res) => {
+        this.setState({ user: res.data, loading: false });
+      })
+      .catch((error) => {
+        this.setState({ error: error.message, loading: false });
+      });
   }
 
   render() {
+    const { user, loading, error } = this.state;
+
+    if (loading) {
+      return <div>Loading...</div>;
+    }
+
+    if (error) {
+      return <div>Error: User not found</div>;
+    }
+
     return (
       <div>
         <br></br>
-        <div className="card col-md-6 offset-md-3">
-          <h3 className="text-center">View Contact</h3>
+        <div className="card col-md-8 offset-md-2">
+          <h3 className="text-center">User Details</h3>
           <div className="card-body">
-            <div className="row">
-              <label>Name: </label>
-              <div> {this.state.user.name}</div>
-            </div>
-            <div className="row">
-              <label>Phone: </label>
-              <div> {this.state.user.phone}</div>
-            </div>
+            {user ? (
+              <>
+                <div className="row">
+                  <label><strong>Name:</strong></label>
+                  <div>{user.name}</div>
+                </div>
+                <div className="row">
+                  <label><strong>Phone:</strong></label>
+                  <div>{user.phone}</div>
+                </div>
+              </>
+            ) : (
+              <div>No user found</div>
+            )}
           </div>
         </div>
       </div>
